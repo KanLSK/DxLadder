@@ -78,6 +78,9 @@ export async function POST(request: Request) {
     // Auto-disable if too many unsafe reports
     if ((caseDoc.safetyFlags?.unsafe || 0) >= 3) {
       caseDoc.status = 'disabled';
+    } else if (newScore >= 10 && ['needs_review', 'community_approved'].includes(caseDoc.status)) {
+      // Auto-promote to official library if score threshold reached and not already promoted
+      caseDoc.status = 'library_promoted';
     }
 
     await caseDoc.save();

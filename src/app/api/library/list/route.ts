@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     const difficulty = searchParams.get('difficulty');
     
     const query: any = {
-      status: { $in: ['library_promoted', 'community_approved', 'needs_review'] }
+      status: 'library_promoted'
     };
     if (system) query.systemTags = system;
     if (difficulty) query.difficulty = parseInt(difficulty, 10);
