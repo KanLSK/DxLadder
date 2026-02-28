@@ -16,6 +16,7 @@ export default function DraftPlayPage() {
   const draftId = params.draftId as string;
 
   const [caseData, setCaseData] = useState<any>(null);
+
   const [currentLayerIndex, setCurrentLayerIndex] = useState(0);
   const [history, setHistory] = useState<string[]>([]);
   const [status, setStatus] = useState<'playing' | 'solved' | 'failed'>('playing');
@@ -204,6 +205,9 @@ export default function DraftPlayPage() {
               <Send className="w-4 h-4" />
               {publishing ? 'Publishing...' : 'Publish to Community'}
             </button>
+            <div className="px-5 py-2.5 bg-white dark:bg-[#18181B] border border-slate-200 dark:border-zinc-800 rounded-xl text-sm font-bold tracking-wide text-slate-700 dark:text-slate-300 shadow-sm">
+               Data Layers: <span className="text-indigo-600 dark:text-indigo-400">{currentLayerIndex + 1}</span> / 6
+            </div>
             <Link
               href={`/app/draft/${draftId}/edit`}
               className="px-6 py-4 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl font-bold text-slate-700 dark:text-slate-300 hover:border-indigo-300 transition-colors flex items-center gap-2"

@@ -17,8 +17,7 @@ interface ClinicalChartProps {
 }
 
 const LAYER_CONFIG = [
-  { key: 'presentationTimeline', label: 'Presentation', icon: FileText },
-  { key: 'hpi', label: 'HPI', icon: ClipboardList },
+  { key: 'presentation', label: 'Presentation', icon: FileText },
   { key: 'history', label: 'History (PMH, PSH, etc)', icon: FileText },
   { key: 'physicalExam', label: 'Physical Exam', icon: Stethoscope },
   { key: 'labs', label: 'Laboratory Data', icon: TestTube },
@@ -70,7 +69,7 @@ export function ClinicalChart({ caseData, currentLayerIndex, solved, failed, rev
                 </div>
             </div>
             <div className="px-4 py-2 bg-white dark:bg-[#18181B] border border-slate-200 dark:border-zinc-800 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-300 shadow-sm">
-               Data Layers: {currentLayerIndex + 1} / 7
+               Data Layers: {currentLayerIndex + 1} / 6
             </div>
         </div>
 
@@ -183,6 +182,21 @@ export function ClinicalChart({ caseData, currentLayerIndex, solved, failed, rev
 
 function RenderLayerContent({ layers, tabConfigKey }: { layers: any, tabConfigKey: string }) {
     if (!layers) return <p className="italic text-slate-500">No data available for this layer.</p>;
+
+    if (tabConfigKey === 'presentation') {
+         return (
+             <div className="space-y-4">
+                 <div>
+                     <strong className="uppercase text-xs tracking-widest text-slate-500 dark:text-slate-400 block mb-1">Presentation Sequence</strong>
+                     <p className="whitespace-pre-wrap">{layers.presentationTimeline || 'Subacute'}</p>
+                 </div>
+                 <div>
+                     <strong className="uppercase text-xs tracking-widest text-slate-500 dark:text-slate-400 block mb-1">History of Present Illness</strong>
+                     <p className="whitespace-pre-wrap">{layers.hpi || 'No HPI available.'}</p>
+                 </div>
+             </div>
+         );
+    }
 
     const layerData = layers[tabConfigKey];
     if (!layerData) return <p className="italic text-slate-500">Data unavailable for this section.</p>;

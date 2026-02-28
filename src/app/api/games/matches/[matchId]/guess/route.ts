@@ -14,7 +14,7 @@ import mongoose from 'mongoose';
 const guessTimestamps = new Map<string, number>();
 const GUESS_COOLDOWN_MS = 2000;   // 1 guess per 2s
 const WRONG_LOCKOUT_MS = 5000;    // 5s lockout after wrong guess (ranked)
-const MAX_LAYERS = 7;
+const MAX_LAYERS = 6;
 
 export async function POST(
   request: Request,

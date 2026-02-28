@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     const isCorrect = matchResult.ok;
     const normalizedGuess = guess.toLowerCase().trim();
 
-    const MAX_LAYERS = 7;
+    const MAX_LAYERS = 6;
     let finished = isCorrect;
     let nextLayerIndex = activeLayerIndex;
 

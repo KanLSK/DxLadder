@@ -52,4 +52,4 @@ export const SABOTAGE_DURATIONS: Record<SabotageType, number> = {
 };
 
 export const MAX_SABOTAGES_PER_PLAYER = 2;
-export const MAX_LAYERS = 7;
+export const MAX_LAYERS = 6;
