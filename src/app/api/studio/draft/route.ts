@@ -18,14 +18,15 @@ export async function GET(request: Request) {
         return NextResponse.json({ success: false, message: 'Draft not found or already published' }, { status: 404 });
     }
 
-    // Map to payload structure expected by frontend preview
+    // Map to payload structure expected by frontend
     const casePayload = {
       title: draftCase.title,
       systemTags: draftCase.systemTags,
       difficulty: draftCase.difficulty,
       style: draftCase.style,
       targetAudience: draftCase.targetAudience,
-      content: draftCase.content
+      contentPublic: draftCase.contentPublic,
+      contentPrivate: draftCase.contentPrivate,
     };
 
     return NextResponse.json({ 

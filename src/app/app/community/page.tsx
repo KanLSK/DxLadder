@@ -1,19 +1,22 @@
 import React from 'react';
 import Link from 'next/link';
 import { Sparkles, TrendingUp, Clock, Star, Tag, ChevronRight, MessageSquare, ArrowUp, Activity } from 'lucide-react';
+import dbConnect from '@/lib/dbConnect';
+import Case from '@/models/Case';
+
+export const dynamic = 'force-dynamic';
 
 export default async function CommunityPage() {
-    // For Server Component MVP, just fetch directly or use a simple fetch wrapper
-    // In a real app we'd handle complex state here or make it a Client Component
-    // For now we will do a basic server fetch
-    let cases = [];
+    let cases: any[] = [];
     try {
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-        const res = await fetch(`${baseUrl}/api/community/feed?sort=hot`, { cache: 'no-store' });
-        if (res.ok) {
-            const data = await res.json();
-            cases = data.cases || [];
-        }
+        await dbConnect();
+        cases = await Case.find({
+            status: { $in: ['needs_review', 'community_approved', 'library_promoted'] }
+        })
+        .sort({ 'community.score': -1, createdAt: -1 })
+        .limit(20)
+        .select('title systemTags difficulty style status community createdAt')
+        .lean();
     } catch (e) {
         console.error("Failed to fetch community cases server-side", e);
     }

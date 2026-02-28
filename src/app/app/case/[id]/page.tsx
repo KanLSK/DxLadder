@@ -51,7 +51,7 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
                             <span className="text-sm font-bold text-slate-400">• {new Date(caseData.createdAt).toLocaleDateString()}</span>
                         </div>
                         <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mb-2">
-                            {caseData.title || `Case: ${caseData.content.diagnosis}`}
+                            {caseData.title || 'Untitled Case'}
                         </h1>
                         <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-400">
                             Systems: {caseData.systemTags?.join(', ')} • Difficulty: {caseData.difficulty}/5 • Style: {caseData.style}
