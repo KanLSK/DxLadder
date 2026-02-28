@@ -74,6 +74,20 @@ export function LandingNav() {
             <Link href="/app/session?mode=daily" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-indigo-600 dark:text-indigo-400">Start playing →</Link>
         </div>
       )}
+
+      {/* Floating CTA (Visible only after scrolling) */}
+      <div className={cn(
+        "fixed bottom-6 right-6 z-50 transition-all duration-500 transform",
+        scrolled ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0 pointer-events-none"
+      )}>
+        <Link 
+          href="/app/session?mode=daily" 
+          className="flex items-center gap-2 px-6 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-xl shadow-indigo-600/30 transition-transform hover:scale-105 active:scale-95"
+        >
+          <Activity className="w-5 h-5" />
+          <span>Start Playing</span>
+        </Link>
+      </div>
     </nav>
   );
 }

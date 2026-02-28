@@ -4,17 +4,18 @@ import { ArrowRight, Play } from 'lucide-react';
 import { LandingNav } from '@/components/landing/LandingNav';
 import { HeroMiniCaseDemo } from '@/components/landing/HeroMiniCaseDemo';
 import { StatsStripCountUp } from '@/components/landing/StatsStripCountUp';
-import { ProductTabs } from '@/components/landing/ProductTabs';
+import { CoreLoopSection } from '@/components/landing/CoreLoopSection';
 import { GamesModeSelector } from '@/components/landing/GamesModeSelector';
 import { CommunityFeedPreview } from '@/components/landing/CommunityFeedPreview';
-import { StyleTogglePreview } from '@/components/landing/StyleTogglePreview';
+import { StudyModeSection } from '@/components/landing/StudyModeSection';
+import { LeaderboardPreview } from '@/components/landing/LeaderboardPreview';
 import { PricingSection } from '@/components/landing/PricingSection';
 import { FAQAccordion } from '@/components/landing/FAQAccordion';
 import { FooterDisclaimer } from '@/components/landing/FooterDisclaimer';
 
 export const metadata = {
-  title: 'DxLadder | Clinical Reasoning & Medical Diagnosis Games',
-  description: 'Practice progressive disclosure diagnosis, play 1v1 clinical duels, and master every medical specialty.',
+  title: 'DxLadder | Clinical Reasoning as a Competitive Sport',
+  description: 'Guess the diagnosis. Unlock clues. Climb the ladder in ranked clinical reasoning duels.',
 };
 
 export default function LandingPage() {
@@ -38,11 +39,11 @@ export default function LandingPage() {
                  </div>
                  
                  <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 leading-[1.1] text-slate-900 dark:text-white">
-                     Climb your clinical reasoning—<br className="hidden lg:block"/>one clue at a time.
+                     Turn clinical reasoning into a competitive sport.
                  </h1>
                  
                  <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-10 leading-relaxed font-medium max-w-lg">
-                     Guess the diagnosis from limited data. Unlock more only when you're wrong. Progress from 'Solved' to 'Mastered'.
+                     Guess the diagnosis. Unlock clues. Climb the ladder.
                  </p>
 
                  <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
@@ -50,13 +51,13 @@ export default function LandingPage() {
                         href="/app/session?mode=daily"
                         className="w-full sm:w-auto flex items-center justify-center px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-[0_8px_20px_-8px_rgba(79,70,229,0.5)] active:scale-95 text-lg"
                      >
-                        Start a Session <ArrowRight className="w-5 h-5 ml-2" />
+                        Start Playing <ArrowRight className="w-5 h-5 ml-2" />
                      </Link>
                      <Link 
-                        href="#games"
+                        href="/app/games/ranked/leaderboard"
                         className="w-full sm:w-auto flex items-center justify-center px-8 py-4 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-900 dark:text-white font-bold rounded-xl transition-colors text-lg"
                      >
-                        Explore Games
+                        View Leaderboard
                      </Link>
                  </div>
              </div>
@@ -73,8 +74,8 @@ export default function LandingPage() {
       {/* 2. SOCIAL PROOF STRIP */}
       <StatsStripCountUp />
 
-      {/* 3. PRODUCT OVERVIEW TABS */}
-      <ProductTabs />
+      {/* 3. CORE LOOP */}
+      <CoreLoopSection />
 
       {/* 4. GAMES MODE SELECTOR */}
       <GamesModeSelector />
@@ -82,16 +83,19 @@ export default function LandingPage() {
       {/* 5. COMMUNITY FEED PREVIEW */}
       <CommunityFeedPreview />
 
-      {/* 6. STYLE TOGGLE (APK vs Vignette) */}
-      <StyleTogglePreview />
+      {/* 6. STUDY MODE */}
+      <StudyModeSection />
 
-      {/* 7. PRICING */}
+      {/* 7. LEADERBOARD PREVIEW */}
+      <LeaderboardPreview />
+
+      {/* 8. PRICING */}
       <PricingSection />
 
-      {/* 8. FAQ */}
+      {/* 9. FAQ */}
       <FAQAccordion />
 
-      {/* 9. FINAL CTA */}
+      {/* 10. FINAL CTA */}
       <section className="py-32 bg-indigo-600 text-center px-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
           <div className="max-w-3xl mx-auto relative z-10 flex flex-col items-center">
@@ -105,13 +109,13 @@ export default function LandingPage() {
                   href="/app/session?mode=daily"
                   className="inline-flex items-center justify-center px-10 py-5 bg-white hover:bg-slate-50 text-indigo-900 font-extrabold rounded-2xl transition-all shadow-2xl active:scale-95 text-xl group"
               >
-                  Play now for free
+                  Start Playing
                   <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
               </Link>
           </div>
       </section>
 
-      {/* 10. FOOTER */}
+      {/* 11. FOOTER */}
       <FooterDisclaimer />
 
     </div>

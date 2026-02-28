@@ -7,23 +7,23 @@ import { cn } from '@/lib/utils';
 const FAQS = [
   {
     question: "Is this medical advice?",
-    answer: "Absolutely not. DxLadder is a simulated clinical reasoning application designed strictly for educational and entertainment purposes. It should never be used to guide real clinical decision-making or self-diagnosis."
+    answer: "No. DxLadder is a simulated clinical reasoning application for educational and entertainment purposes. It is not for real clinical decision-making."
   },
   {
-    question: "How are the cases generated and reviewed?",
-    answer: "Our 'AI Studio' allows users to generate cases using a customized large language model prompted to create realistic, medically sound scenarios. These cases undergo community peer review (upvotes/downvotes). Cases that perform well and are medically accurate get added to the official DxLadder library by our moderation team."
+    question: "How are the cases generated?",
+    answer: "Users generate cases in AI Studio using customized parameters. The best cases are peer-reviewed via upvotes and promoted to the official library."
   },
   {
     question: "Are ranked games truly anonymous?",
-    answer: "Yes. In Dx Duel (ranked matchmaking), you climb the ladder using an anonymous alias. Your rank and Elo rating are public, but your real identity remains hidden to protect the learning environment."
+    answer: "Yes. In Ranked mode, you climb the ladder using an alias. Your rank is public, but your real identity remains hidden."
   },
   {
     question: "What is the difference between Vignette and APK style?",
-    answer: "Vignette style delivers information in short, rapid-fire bullet points, mimicking a USMLE board question. APK (Abstracted Patient Knowledge) style resembles a real patient chart with distinct sections like HPI, Vitals, Exam, and Labs, requiring you to sift through more data to find what matters."
+    answer: "Vignettes are short, board-style summaries. APK mode mimics an Electronic Medical Record with distinct tabs for HPI, Exam, Labs, and Imaging."
   },
   {
-    question: "Can I play privately with my study group?",
-    answer: "Yes! In the 'Private Arena' mode, you can create a secure lobby code and invite your friends. You can play 1v1, 2v2, or 4v4 duels, or try novel games like Chaos Mode and Clue Auction together."
+    question: "Can I play privately with friends?",
+    answer: "Yes. Use 'Private Arena' to create a secure lobby code and invite your study group for 1v1, 2v2, or Chaos Mode games."
   }
 ];
 

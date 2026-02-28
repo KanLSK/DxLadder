@@ -57,7 +57,7 @@ export function PricingSection() {
                <span className="text-slate-500 font-medium">/forever</span>
             </div>
             <p className="text-slate-600 dark:text-slate-400 font-medium mb-8">
-               Perfect for medical students building a daily study habit.
+               Build your daily habit.
             </p>
             
             <ul className="space-y-4 flex-1 mb-8">
@@ -81,7 +81,7 @@ export function PricingSection() {
 
             <Link 
               href="/app/session?mode=daily" 
-              className="w-full py-4 text-center rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-white font-bold hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+              className="w-full py-4 text-center rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-white font-bold hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shadow-sm"
             >
               Start Free
             </Link>
@@ -121,7 +121,7 @@ export function PricingSection() {
              )}
              
              <p className="relative z-10 text-indigo-100 font-medium mb-8">
-                 Advanced clinical tools for residents and intense shelf exam prep.
+                 Compete unlimited. Generate cases. Master faster.
              </p>
 
              <ul className="relative z-10 space-y-4 flex-1 mb-8">

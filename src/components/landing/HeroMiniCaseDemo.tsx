@@ -154,18 +154,43 @@ export function HeroMiniCaseDemo() {
         )}
 
         {status === 'correct' && (
-          <div className="absolute inset-0 bg-white/80 dark:bg-[#18181B]/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center animate-in zoom-in-95 duration-500">
-            <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-xl shadow-emerald-500/30 mb-4">
+          <div className="absolute inset-0 bg-white/95 dark:bg-[#18181B]/95 backdrop-blur-md z-20 flex flex-col items-center justify-center animate-in zoom-in-95 duration-500 p-6 text-center">
+            
+            <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-[0_0_30px_rgba(16,185,129,0.5)] mb-6 animate-bounce">
               <CheckCircle2 className="w-8 h-8" />
             </div>
-            <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Spot on!</h3>
-            <p className="text-emerald-600 dark:text-emerald-400 font-bold text-lg mb-6">Pulmonary Embolism</p>
+
+            <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-2 tracking-tight uppercase">Diagnosis Correct!</h3>
+            <p className="text-emerald-600 dark:text-emerald-400 font-bold text-xl mb-8">+50 XP</p>
+            
+            {/* Rank Up Animation */}
+            <div className="w-full max-w-xs space-y-4 mb-8">
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-sm font-bold text-slate-500 uppercase">Current Rank</span>
+                <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-black text-lg animate-pulse">
+                  <span>Novice II</span>
+                  <ChevronRight className="w-4 h-4" />
+                  <span>Novice III</span>
+                </div>
+              </div>
+              
+              {/* Fake XP Bar */}
+              <div className="h-4 w-full bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden relative shadow-inner">
+                 <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 to-purple-500 w-0 animate-[fillBar_1.5s_ease-out_forwards]" />
+                 <style dangerouslySetInnerHTML={{__html: `
+                   @keyframes fillBar {
+                     0% { width: 45%; }
+                     100% { width: 100%; }
+                   }
+                 `}} />
+              </div>
+            </div>
             
             <button 
               onClick={resetDemo}
-              className="px-6 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-colors flex items-center gap-2"
+              className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all hover:scale-105 active:scale-95 shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] flex items-center gap-2"
             >
-              <RefreshCw className="w-4 h-4" /> Try another
+              Play Another <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         )}
