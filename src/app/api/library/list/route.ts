@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
-import CaseLibrary from '@/models/CaseLibrary';
+import Case from '@/models/Case';
 
 export async function GET(request: Request) {
   try {
@@ -10,14 +10,17 @@ export async function GET(request: Request) {
     const system = searchParams.get('system');
     const difficulty = searchParams.get('difficulty');
     
-    const query: any = {};
+    const query: any = {
+      status: { $in: ['library_promoted', 'community_approved', 'needs_review'] }
+    };
     if (system) query.systemTags = system;
     if (difficulty) query.difficulty = parseInt(difficulty, 10);
 
-    const cases = await CaseLibrary.find(query)
-        .select('_id finalDiagnosis difficulty systemTags diseaseTags sourceType createdAt')
-        .sort({ createdAt: -1 })
-        .limit(50); // limit for MVP
+    const cases = await Case.find(query)
+      .select('title difficulty systemTags style status createdAt')
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
 
     return NextResponse.json({ success: true, cases });
 

@@ -21,8 +21,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Fetch only what we need — public fields for layer count, private for answer check
-    const targetCase = await Case.findById(caseId);
+    // Only fetch what we need — private fields for answer check
+    const targetCase = await Case.findById(caseId)
+      .select('contentPrivate.diagnosis contentPrivate.aliases contentPrivate.answerCheck contentPrivate.teachingPoints systemTags')
+      .lean();
 
     if (!targetCase) {
       return NextResponse.json(
@@ -31,11 +33,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Answer data lives in contentPrivate
-    const { diagnosis, aliases } = targetCase.contentPrivate;
+    const priv = (targetCase as any).contentPrivate;
+    const { diagnosis, aliases } = priv;
     const normalizedGuess = normalizeGuess(guess);
     const expectedNormalized = normalizeGuess(diagnosis);
-
     const isCorrect = checkAlternativeSpellings(normalizedGuess, expectedNormalized, aliases);
 
     const MAX_LAYERS = 7;
@@ -43,78 +44,40 @@ export async function POST(request: Request) {
     let nextLayerIndex = activeLayerIndex;
 
     if (!isCorrect) {
-       if (activeLayerIndex < MAX_LAYERS - 1) {
-           nextLayerIndex = activeLayerIndex + 1;
-       } else {
-           finished = true;
-       }
+      if (activeLayerIndex < MAX_LAYERS - 1) {
+        nextLayerIndex = activeLayerIndex + 1;
+      } else {
+        finished = true;
+      }
     }
 
-    // Track play session
-    let playSession = null;
+    // Track play session — fire and forget for non-critical updates
     if (userKey) {
-        const previousPlay = await Play.findOne({ caseId, userKey });
-        const alreadySolved = previousPlay?.solved || false;
+      const previousPlay = await Play.findOne({ caseId, userKey })
+        .select('solved')
+        .lean();
+      const alreadySolved = previousPlay?.solved || false;
 
-        playSession = await Play.findOneAndUpdate(
-            { caseId, userKey },
-            {
-               $inc: { attempts: 1 },
-               $set: {
-                   solved: isCorrect || alreadySolved,
-                   layersUnlocked: nextLayerIndex + 1
-               },
-               $push: { guesses: guess }
-            },
-            { upsert: true, new: true }
-        );
+      // Use updateOne instead of findOneAndUpdate — faster, no return doc needed
+      Play.updateOne(
+        { caseId, userKey },
+        {
+          $inc: { attempts: 1 },
+          $set: {
+            solved: isCorrect || alreadySolved,
+            layersUnlocked: nextLayerIndex + 1
+          },
+          $push: { guesses: guess }
+        },
+        { upsert: true }
+      ).exec(); // Fire-and-forget — don't await
 
-        // User stat updates on first solve
-        if (isCorrect && !alreadySolved && mongoose.Types.ObjectId.isValid(userKey)) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            const user = await User.findById(userKey);
-            if (user) {
-                let newStreak = user.stats.currentStreak;
-                const lastPlayed = user.stats.lastPlayedDate;
-
-                if (lastPlayed) {
-                    const lastPlayedDay = new Date(lastPlayed);
-                    lastPlayedDay.setHours(0, 0, 0, 0);
-                    const diffTime = Math.abs(today.getTime() - lastPlayedDay.getTime());
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                    if (diffDays === 1) {
-                        newStreak += 1;
-                    } else if (diffDays > 1) {
-                        newStreak = 1;
-                    }
-                } else {
-                    newStreak = 1;
-                }
-
-                const newLongest = Math.max(newStreak, user.stats.longestStreak);
-
-                const systemMastery = user.systemMastery || new Map();
-                if (targetCase.systemTags && targetCase.systemTags.length > 0) {
-                    targetCase.systemTags.forEach((tag: string) => {
-                        const current = systemMastery.get(tag) || { attempted: 0, solved: 0 };
-                        systemMastery.set(tag, { attempted: current.attempted + 1, solved: current.solved + 1 });
-                    });
-                }
-
-                await User.findByIdAndUpdate(userKey, {
-                    $set: {
-                        'stats.lastPlayedDate': new Date(),
-                        'stats.currentStreak': newStreak,
-                        'stats.longestStreak': newLongest,
-                        systemMastery: systemMastery
-                    },
-                    $inc: { 'stats.totalSolved': 1 }
-                });
-            }
-        }
+      // User stat updates on first solve — also fire-and-forget
+      if (isCorrect && !alreadySolved && mongoose.Types.ObjectId.isValid(userKey)) {
+        updateUserStats(userKey, (targetCase as any).systemTags).catch(err => {
+          console.error('Background user stat update failed:', err);
+        });
+      }
     }
 
     // Build response — NEVER leak private data unless finished
@@ -126,15 +89,14 @@ export async function POST(request: Request) {
       nextLayerIndex,
     };
 
-    // Only reveal private content when game is over
     if (finished) {
-        responsePayload.reveal = {
-            diagnosis: targetCase.contentPrivate.diagnosis,
-            rationale: targetCase.contentPrivate.answerCheck?.rationale,
-            keyDifferentials: targetCase.contentPrivate.answerCheck?.keyDifferentials,
-            teachingPoints: targetCase.contentPrivate.teachingPoints,
-        };
-        responsePayload.systemTags = targetCase.systemTags;
+      responsePayload.reveal = {
+        diagnosis: priv.diagnosis,
+        rationale: priv.answerCheck?.rationale,
+        keyDifferentials: priv.answerCheck?.keyDifferentials,
+        teachingPoints: priv.teachingPoints,
+      };
+      responsePayload.systemTags = (targetCase as any).systemTags;
     }
 
     return NextResponse.json(responsePayload);
@@ -146,4 +108,45 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+}
+
+// Background stat update — decoupled from the main response
+async function updateUserStats(userKey: string, systemTags: string[]) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const user = await User.findById(userKey).select('stats systemMastery').lean();
+  if (!user) return;
+
+  let newStreak = user.stats.currentStreak;
+  const lastPlayed = user.stats.lastPlayedDate;
+
+  if (lastPlayed) {
+    const lastPlayedDay = new Date(lastPlayed);
+    lastPlayedDay.setHours(0, 0, 0, 0);
+    const diffDays = Math.ceil(Math.abs(today.getTime() - lastPlayedDay.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays === 1) newStreak += 1;
+    else if (diffDays > 1) newStreak = 1;
+  } else {
+    newStreak = 1;
+  }
+
+  const updateObj: any = {
+    'stats.lastPlayedDate': new Date(),
+    'stats.currentStreak': newStreak,
+    'stats.longestStreak': Math.max(newStreak, user.stats.longestStreak),
+  };
+
+  // Build system mastery updates
+  if (systemTags?.length > 0) {
+    systemTags.forEach((tag: string) => {
+      updateObj[`systemMastery.${tag}.attempted`] = ((user.systemMastery as any)?.[tag]?.attempted || 0) + 1;
+      updateObj[`systemMastery.${tag}.solved`] = ((user.systemMastery as any)?.[tag]?.solved || 0) + 1;
+    });
+  }
+
+  await User.updateOne(
+    { _id: userKey },
+    { $set: updateObj, $inc: { 'stats.totalSolved': 1 } }
+  );
 }

@@ -2,78 +2,77 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import User from '@/models/User';
 import Play from '@/models/Play';
+import Case from '@/models/Case';
 
-// We use a hardcoded demo user email for the MVP since we lack full Auth
 const DEMO_USER_EMAIL = 'demo@dxladder.com';
 
 export async function GET() {
   try {
     await dbConnect();
 
-    // 1. Try to fetch the existing demo user
-    let user = await User.findOne({ email: DEMO_USER_EMAIL });
+    // Run user + play queries in parallel
+    const [user, recentPlays] = await Promise.all([
+      User.findOne({ email: DEMO_USER_EMAIL }).lean(),
+      Play.find({})
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .select('caseId solved attempts createdAt')
+        .lean()
+    ]);
 
-    // 2. If it doesn't exist, create it (Seed)
+    // Seed demo user if not found
     if (!user) {
-      user = await User.create({
+      const newUser = await User.create({
         email: DEMO_USER_EMAIL,
         displayName: 'Dr. Smith',
         level: 'Resident',
-        stats: {
-          totalSolved: 0,
-          currentStreak: 0,
-          longestStreak: 0,
-          rank: 100, // Top 100% since no plays yet
-        },
-        systemMastery: new Map(), // Empty to start
+        stats: { totalSolved: 0, currentStreak: 0, longestStreak: 0, rank: 100 },
+        systemMastery: new Map(),
+      });
+
+      return NextResponse.json({
+        success: true,
+        user: {
+          id: newUser._id,
+          displayName: newUser.displayName,
+          level: newUser.level,
+          stats: newUser.stats,
+          systemMastery: {},
+          recentActivity: []
+        }
       });
     }
 
-    // 3. Fetch recent activity for the dashboard
-    const recentActivityRaw = await Play.find({ userKey: String(user._id) })
-        .sort({ createdAt: -1 })
-        .limit(3)
+    // Batch-fetch all referenced cases in ONE query instead of N+1
+    const caseIds = recentPlays
+      .filter((p: any) => p.caseId)
+      .map((p: any) => p.caseId);
+
+    const casesMap = new Map();
+
+    if (caseIds.length > 0) {
+      const cases = await Case.find({ _id: { $in: caseIds } })
+        .select('title systemTags contentPrivate.diagnosis')
         .lean();
 
-    // In a real app we'd populate the Case reference to get the title & system.
-    // For MVP, we will extract what we can or just return the raw array.
-    // Let's assume the Case is either CaseLibrary or CaseGenerated. 
-    // Since Play doesn't strictly lean() with populated references simply, we'll map the raw plays.
-    
-    // We basically just need: id, title (fallback), system, date, solved length.
-    const recentActivity = await Promise.all(recentActivityRaw.map(async (play: any) => {
-        let title = "Unknown Case";
-        let system = "General";
-        
-        try {
-            if (play.caseType === 'library') {
-                 const mongoose = require('mongoose');
-                 const libCase = await mongoose.model('CaseLibrary').findById(play.caseId).select('finalDiagnosis systemTags');
-                 if (libCase) {
-                     title = libCase.finalDiagnosis;
-                     system = libCase.systemTags?.[0] || 'General';
-                 }
-            } else if (play.caseType === 'generated') {
-                 const mongoose = require('mongoose');
-                 const genCase = await mongoose.model('CaseGenerated').findById(play.caseId).select('payload.finalDiagnosis payload.systemTags');
-                 if (genCase) {
-                     title = genCase.payload?.finalDiagnosis || "AI Case";
-                     system = genCase.payload?.systemTags?.[0] || 'General';
-                 }
-            }
-        } catch(e) { /* ignore */ }
+      cases.forEach((c: any) => {
+        casesMap.set(String(c._id), c);
+      });
+    }
 
-        return {
-             id: play._id,
-             title,
-             system,
-             date: play.createdAt,
-             attempts: play.attempts,
-             solved: play.solved
-        };
-    }));
+    // Map plays to activity without individual DB calls
+    const recentActivity = recentPlays.map((play: any) => {
+      const caseDoc = casesMap.get(String(play.caseId));
+      return {
+        id: play._id,
+        title: caseDoc?.title || caseDoc?.contentPrivate?.diagnosis || 'Unknown Case',
+        system: caseDoc?.systemTags?.[0] || 'General',
+        date: play.createdAt,
+        attempts: play.attempts,
+        solved: play.solved
+      };
+    });
 
-    // Return the user stats
     return NextResponse.json({
       success: true,
       user: {
@@ -81,8 +80,9 @@ export async function GET() {
         displayName: user.displayName,
         level: user.level,
         stats: user.stats,
-        // Convert Map to plain object for JSON serialization
-        systemMastery: Object.fromEntries(user.systemMastery), 
+        systemMastery: user.systemMastery instanceof Map
+          ? Object.fromEntries(user.systemMastery)
+          : (user.systemMastery || {}),
         recentActivity
       }
     });

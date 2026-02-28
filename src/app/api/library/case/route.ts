@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
-import CaseLibrary from '@/models/CaseLibrary';
-import CaseGenerated from '@/models/CaseGenerated';
+import Case from '@/models/Case';
 
 export async function GET(request: Request) {
   try {
@@ -10,40 +9,52 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const system = searchParams.get('system');
     const difficulty = searchParams.get('difficulty');
-    const mode = searchParams.get('mode') || 'practice'; 
+    const mode = searchParams.get('mode') || 'practice';
     const id = searchParams.get('id');
 
-    const query: any = {};
+    // If a specific ID is given, fetch that case (public only for play)
+    if (id) {
+      const caseDoc = await Case.findById(id)
+        .select('title systemTags difficulty style contentPublic status')
+        .lean();
+
+      if (!caseDoc) {
+        return NextResponse.json({ success: false, message: 'Case not found' }, { status: 404 });
+      }
+
+      return NextResponse.json({
+        success: true,
+        case: {
+          _id: caseDoc._id,
+          title: (caseDoc as any).title,
+          systemTags: (caseDoc as any).systemTags,
+          difficulty: (caseDoc as any).difficulty,
+          style: (caseDoc as any).style,
+          contentPublic: (caseDoc as any).contentPublic,
+          sourceType: 'generated'
+        }
+      });
+    }
+
+    // Random case using aggregation — only select public fields
+    const query: any = {
+      status: { $in: ['library_promoted', 'community_approved', 'needs_review'] }
+    };
     if (system) query.systemTags = system;
     if (difficulty) query.difficulty = parseInt(difficulty, 10);
 
-    let cases;
-    
-    // If an ID is provided, fetch that exact case. Otherwise get a random one.
-    if (id) {
-        if (mode === 'ai-review') {
-            const genCase = await CaseGenerated.findById(id);
-            if (genCase) {
-                 cases = [{
-                     _id: genCase._id,
-                     systemTags: genCase.payload.systemTags,
-                     diseaseTags: genCase.payload.diseaseTags,
-                     difficulty: genCase.payload.difficulty,
-                     hints: genCase.payload.hints,
-                     sourceType: 'generated'
-                 }];
-            } else {
-                 cases = [];
-            }
-        } else {
-            cases = await CaseLibrary.find({ _id: id });
-        }
-    } else {
-        cases = await CaseLibrary.aggregate([
-          { $match: query },
-          { $sample: { size: 1 } },
-        ]);
-    }
+    const cases = await Case.aggregate([
+      { $match: query },
+      { $sample: { size: 1 } },
+      { $project: {
+        title: 1,
+        systemTags: 1,
+        difficulty: 1,
+        style: 1,
+        contentPublic: 1,
+        status: 1
+      }}
+    ]);
 
     if (!cases || cases.length === 0) {
       return NextResponse.json(
@@ -52,20 +63,20 @@ export async function GET(request: Request) {
       );
     }
 
-    const randomCase = cases[0];
+    const c = cases[0];
+    return NextResponse.json({
+      success: true,
+      case: {
+        _id: c._id,
+        title: c.title,
+        systemTags: c.systemTags,
+        difficulty: c.difficulty,
+        style: c.style,
+        contentPublic: c.contentPublic,
+        sourceType: 'generated'
+      }
+    });
 
-    // Censor sensitive info (only send first hint, no diagnosis/aliases/teaching points)
-    // The client will fetch subsequent hints or submit guesses which validates
-    const safeCase = {
-      _id: randomCase._id,
-      systemTags: randomCase.systemTags,
-      diseaseTags: randomCase.diseaseTags,
-      difficulty: randomCase.difficulty,
-      hint1: randomCase.hints[0], // Only send the first hint initially
-      sourceType: randomCase.sourceType,
-    };
-
-    return NextResponse.json({ success: true, case: safeCase });
   } catch (error: any) {
     console.error('Error fetching library case:', error);
     return NextResponse.json(
