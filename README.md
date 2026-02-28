@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Doctordle
 
-## Getting Started
+Doctordle is a clinical diagnosis guessing game built with Next.js, MongoDB, and Google Gemini.
 
-First, run the development server:
+Users test their clinical reasoning by guessing diagnoses from a 5-hint escalating ladder (from vague presentation to pathognomonic findings).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+It features:
+1. **Case Library**: A persistent library of curated and community-promoted cases.
+2. **AI-Generated Case Review**: An ephemeral queue where Gemini generates new cases, users play and vote on their realism/quality, and highly-rated cases are promoted to the permanent library.
+
+## Tech Stack
+- **Frontend**: Next.js 15 (App Router), TypeScript, Tailwind CSS
+- **Database**: MongoDB (Mongoose ORM)
+- **AI**: Google Gemini (`gemini-2.5-flash`)
+
+## Prerequisites
+- Node.js (v18+)
+- MongoDB Atlas cluster (or local instance)
+- Google Gemini API Key
+
+## Environment Setup
+Create a `.env.local` file in the root directory:
+
+```env
+# MongoDB Connection String
+MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/doctordle?retryWrites=true&w=majority
+
+# Gemini API Key for Case Generation/Critic
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Optional configuration
+SERVER_SALT=your_random_string_for_ip_hashing
+MIN_VOTES=5
+UPVOTE_THRESHOLD=0.8
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Running Locally
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. Seed the database with initial cases:
+   ```bash
+   node scripts/seed.js
+   ```
 
-## Learn More
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
+- `src/app`: Next.js pages and API routes
+  - `/api/library/*`: Endpoints for fetching from the persistent library
+  - `/api/play/*`: Endpoints handling game logic (guesses, hint reveals)
+  - `/api/ai/*`: Endpoints for the dual-pass Gemini generation system
+  - `/api/vote/*`: Endpoints handling community voting and threshold promotion
+- `src/components`: React UI components (PlayPage, CaseCard, GuessInput, VotingPanel)
+- `src/lib`: Utilities (DB connection, Gemini pipeline, string normalization)
+- `src/models`: Mongoose schemas (CaseLibrary, CaseGenerated, Vote, Play)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Two-Pass AI System
+Doctordle uses a robust "Generate + Critic" pattern to ensure high-quality AI cases before they are shown to users. 
+1. **Generator**: Creates a full JSON payload (diagnosis, hints ladder, tags).
+2. **Critic**: Evaluates the payload for medical accuracy, hint progression logic, and safety. If it fails, the Generator tries again up to 3 times before returning an error.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Contributing / Tests
+Basic tests exist for hint normalization and alias matching.
+```bash
+npx jest
+```
