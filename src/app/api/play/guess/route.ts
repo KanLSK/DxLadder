@@ -4,7 +4,8 @@ import mongoose from 'mongoose';
 import Case from '@/models/Case';
 import Play from '@/models/Play';
 import User from '@/models/User';
-import { normalizeGuess, checkAlternativeSpellings } from '@/lib/normalization';
+import { isCorrectGuess } from '@/lib/answerMatch';
+import { generateMechanismQuestionsForCase } from '@/lib/mechanismGenerator';
 
 export async function POST(request: Request) {
   try {
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
 
     // Only fetch what we need — private fields for answer check
     const targetCase = await Case.findById(caseId)
-      .select('contentPrivate.diagnosis contentPrivate.aliases contentPrivate.answerCheck contentPrivate.teachingPoints systemTags')
+      .select('contentPrivate.diagnosis contentPrivate.aliases contentPrivate.acceptRules contentPrivate.answerCheck contentPrivate.teachingPoints contentPrivate.mechanismQuestions systemTags difficulty')
       .lean();
 
     if (!targetCase) {
@@ -34,10 +35,10 @@ export async function POST(request: Request) {
     }
 
     const priv = (targetCase as any).contentPrivate;
-    const { diagnosis, aliases } = priv;
-    const normalizedGuess = normalizeGuess(guess);
-    const expectedNormalized = normalizeGuess(diagnosis);
-    const isCorrect = checkAlternativeSpellings(normalizedGuess, expectedNormalized, aliases);
+    const { diagnosis, aliases, acceptRules } = priv;
+    const matchResult = isCorrectGuess(guess, diagnosis, aliases, acceptRules);
+    const isCorrect = matchResult.ok;
+    const normalizedGuess = guess.toLowerCase().trim();
 
     const MAX_LAYERS = 7;
     let finished = isCorrect;
@@ -85,6 +86,7 @@ export async function POST(request: Request) {
       success: true,
       correct: isCorrect,
       normalizedGuess,
+      matchMethod: matchResult.method,
       finished,
       nextLayerIndex,
     };
@@ -97,6 +99,37 @@ export async function POST(request: Request) {
         teachingPoints: priv.teachingPoints,
       };
       responsePayload.systemTags = (targetCase as any).systemTags;
+
+      // Include mechanism questions (strip correctIndex for client-side)
+      let mechQs = priv.mechanismQuestions;
+
+      // Fallback: generate mechanism questions on-demand for older cases
+      if (!mechQs && isCorrect) {
+        try {
+          mechQs = await generateMechanismQuestionsForCase(
+            caseId,
+            priv.diagnosis,
+            (targetCase as any).difficulty || 3
+          );
+        } catch (e) {
+          console.warn('On-demand mechanism generation failed:', e);
+        }
+      }
+
+      if (mechQs) {
+        const stripAnswer = (q: any) => ({
+          id: q.id,
+          prompt: q.prompt,
+          options: q.options,
+          explanation: q.explanation, // shown AFTER answering client-side
+          tags: q.tags,
+        });
+        responsePayload.mechanismQuestions = {
+          stepChain: (mechQs.stepChain || []).map(stripAnswer),
+          compensation: (mechQs.compensation || []).map(stripAnswer),
+          traps: mechQs.traps || [],
+        };
+      }
     }
 
     return NextResponse.json(responsePayload);

@@ -39,7 +39,7 @@ export function VotingPanel({ caseId, onVoteComplete }: VotingPanelProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          generatedCaseId: caseId,
+          caseId: caseId,
           vote,
           reasons: vote === -1 ? selectedReasons : []
         })

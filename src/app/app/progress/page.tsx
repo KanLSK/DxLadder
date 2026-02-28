@@ -47,7 +47,7 @@ export default function ProgressPage() {
                 </p>
             </header>
 
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 
                 {/* Global Stats */}
                 <div className="bg-white dark:bg-[#18181B] rounded-2xl border border-slate-200/60 dark:border-zinc-800/60 shadow-sm p-6 flex flex-col items-center justify-center text-center">
@@ -98,7 +98,7 @@ export default function ProgressPage() {
                                  else if (intensity > 0.2) colorCls = "bg-indigo-200 dark:bg-indigo-500/30";
 
                                  return (
-                                     <div key={`${col}-${row}`} className={cn("w-6 h-6 rounded-sm opacity-80 hover:opacity-100 transition-opacity cursor-pointer", colorCls)} />
+                                     <div key={`${col}-${row}`} className={cn("w-4 h-4 md:w-6 md:h-6 rounded-sm opacity-80 hover:opacity-100 transition-opacity cursor-pointer", colorCls)} />
                                  );
                              })}
                          </div>
@@ -107,7 +107,7 @@ export default function ProgressPage() {
             </div>
 
             {/* Radar / Strengths & Weaknesses */}
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                  <div className="bg-white dark:bg-[#18181B] rounded-2xl border border-slate-200/60 dark:border-zinc-800/60 shadow-sm p-8">
                      <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Strength & Weakness Radar</h2>
                      <div className="aspect-square w-full max-w-[300px] mx-auto bg-slate-50 dark:bg-zinc-900 rounded-full border border-slate-100 dark:border-zinc-800 flex items-center justify-center relative shadow-inner">

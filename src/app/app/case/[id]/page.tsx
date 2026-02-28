@@ -5,7 +5,8 @@ import dbConnect from '@/lib/dbConnect';
 import Case from '@/models/Case';
 import mongoose from 'mongoose';
 
-export default async function CaseDetailPage({ params }: { params: { id: string } }) {
+export default async function CaseDetailPage(props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
     await dbConnect();
 
     // Fetch the case directly server-side

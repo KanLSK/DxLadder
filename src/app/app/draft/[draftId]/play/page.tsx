@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { ClinicalChart } from '@/components/session/ClinicalChart';
 import { ThinkSpace } from '@/components/session/ThinkSpace';
 import { RefreshCw, Send, Pencil, Check, X } from 'lucide-react';
@@ -11,6 +12,7 @@ import Link from 'next/link';
 export default function DraftPlayPage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
   const draftId = params.draftId as string;
 
   const [caseData, setCaseData] = useState<any>(null);
@@ -39,11 +41,13 @@ export default function DraftPlayPage() {
   }, [draftId]);
 
   const handleGuess = async (guess: string) => {
-    if (!caseData || status !== 'playing') return;
+    if (!caseData || status !== 'playing') {
+      return { ok: false, error: 'Cannot submit guess right now' };
+    }
     setHistory(prev => [...prev, guess]);
 
     try {
-      const uid = localStorage.getItem('dxladder_uid');
+      const userId = session?.user?.id || 'anonymous';
       const res = await fetch('/api/play/guess', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -51,7 +55,7 @@ export default function DraftPlayPage() {
           caseId: draftId,
           guess,
           currentLayerIndex,
-          userKey: uid || 'anonymous',
+          userKey: userId,
         }),
       });
 
@@ -71,9 +75,13 @@ export default function DraftPlayPage() {
         if (result.finished && result.reveal) {
           setReveal(result.reveal);
         }
+        
+        return { ok: true, isWrongGuess: !result.correct && !result.finished };
       }
+      return { ok: false, error: result.error || 'Failed to submit guess' };
     } catch (e) {
       console.error('Error submitting guess:', e);
+      return { ok: false, error: 'Network error submitting guess' };
     }
   };
 
@@ -140,6 +148,7 @@ export default function DraftPlayPage() {
           onSubmit={handleGuess}
           disabled={loading || status !== 'playing'}
           history={history}
+          status={status}
         />
       ) : (
         <div className="mt-12 w-full max-w-xl mx-auto flex flex-col items-center">

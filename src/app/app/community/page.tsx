@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Sparkles, TrendingUp, Clock, Star, Tag, ChevronRight, MessageSquare, ArrowUp, Activity } from 'lucide-react';
+import { Sparkles, TrendingUp, Clock, Star, Tag, ChevronRight, MessageSquare, ArrowUp, ArrowDown, Activity } from 'lucide-react';
 import dbConnect from '@/lib/dbConnect';
 import Case from '@/models/Case';
 
@@ -84,13 +84,16 @@ export default async function CommunityPage() {
                         >
                             <div className="flex items-start gap-4">
                                 {/* Vote Column */}
-                                <div className="flex flex-col items-center gap-1 shrink-0 bg-slate-50 dark:bg-zinc-900 rounded-lg p-2 min-w-[50px]">
-                                    <div className="text-slate-400 group-hover:text-indigo-500 transition-colors">
+                                <div className="flex flex-col items-center gap-0.5 shrink-0 bg-slate-50 dark:bg-zinc-900 rounded-lg p-2 min-w-[50px]">
+                                    <div className="text-slate-400 group-hover:text-emerald-500 transition-colors">
                                         <ArrowUp className="w-5 h-5" />
                                     </div>
                                     <span className="font-bold text-slate-700 dark:text-slate-300">
                                         {c.community?.score || 0}
                                     </span>
+                                    <div className="text-slate-400 group-hover:text-rose-500 transition-colors">
+                                        <ArrowDown className="w-5 h-5" />
+                                    </div>
                                 </div>
                                 
                                 {/* Content Column */}

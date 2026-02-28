@@ -22,10 +22,10 @@ export default function LandingPage() {
                   </div>
               </div>
               <div className="flex items-center gap-4">
-                  <Link href="/app/dashboard" className="hidden sm:block text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors">
+                  <Link href="/auth/signin" className="hidden sm:block text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors">
                       Sign In
                   </Link>
-                  <Link href="/app/dashboard" className="text-sm px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-all active:scale-95 shadow-sm">
+                  <Link href="/auth/signin" className="text-sm px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-all active:scale-95 shadow-sm">
                       Start Free Session
                   </Link>
               </div>
@@ -218,7 +218,7 @@ export default function LandingPage() {
                               <CheckCircle2 className="w-5 h-5 text-indigo-500" /> Community Voting
                           </li>
                       </ul>
-                      <Link href="/app/dashboard" className="w-full py-4 text-center rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-900 dark:text-white font-bold transition-colors">
+                      <Link href="/auth/signin" className="w-full py-4 text-center rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-900 dark:text-white font-bold transition-colors">
                           Get Started
                       </Link>
                   </div>

@@ -3,16 +3,26 @@ import dbConnect from '@/lib/dbConnect';
 import User from '@/models/User';
 import Play from '@/models/Play';
 import Case from '@/models/Case';
-
-const DEMO_USER_EMAIL = 'demo@dxladder.com';
+import { auth } from '@/lib/auth';
 
 export async function GET() {
   try {
     await dbConnect();
 
+    // Get the authenticated session
+    const session = await auth();
+    const userEmail = session?.user?.email;
+
+    if (!userEmail) {
+      return NextResponse.json(
+        { success: false, message: 'Not authenticated' },
+        { status: 401 }
+      );
+    }
+
     // Run user + play queries in parallel
     const [user, recentPlays] = await Promise.all([
-      User.findOne({ email: DEMO_USER_EMAIL }).lean(),
+      User.findOne({ email: userEmail }).lean(),
       Play.find({})
         .sort({ createdAt: -1 })
         .limit(5)
@@ -20,12 +30,12 @@ export async function GET() {
         .lean()
     ]);
 
-    // Seed demo user if not found
+    // Seed user if not found (shouldn't happen if signIn callback works, but just in case)
     if (!user) {
       const newUser = await User.create({
-        email: DEMO_USER_EMAIL,
-        displayName: 'Dr. Smith',
-        level: 'Resident',
+        email: userEmail,
+        displayName: session.user?.name || userEmail.split('@')[0],
+        level: 'Medical Student',
         stats: { totalSolved: 0, currentStreak: 0, longestStreak: 0, rank: 100 },
         systemMastery: new Map(),
       });

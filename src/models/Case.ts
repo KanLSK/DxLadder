@@ -37,10 +37,35 @@ export interface ICase extends Document {
   contentPrivate: {
     diagnosis: string;
     aliases: string[];
+    acceptRules?: {
+      requiredTokens?: string[];
+      bannedTokens?: string[];
+      allowAmbiguousAbbrev?: string[];
+      customSynonyms?: Record<string, string[]>;
+    };
     teachingPoints: string[];
     answerCheck: {
       rationale: string;
       keyDifferentials: string[];
+    };
+    mechanismQuestions?: {
+      stepChain: Array<{
+        id: string;
+        prompt: string;
+        options: string[];
+        correctIndex: number;
+        explanation: string;
+        tags: string[];
+      }>;
+      compensation: Array<{
+        id: string;
+        prompt: string;
+        options: string[];
+        correctIndex: number;
+        explanation: string;
+        tags: string[];
+      }>;
+      traps: string[];
     };
   };
 
@@ -105,11 +130,13 @@ const CaseSchema: Schema = new Schema({
   contentPrivate: {
     diagnosis: { type: String, required: true },
     aliases: [{ type: String }],
+    acceptRules: { type: Schema.Types.Mixed },
     teachingPoints: [{ type: String }],
     answerCheck: {
       rationale: { type: String },
       keyDifferentials: [{ type: String }]
-    }
+    },
+    mechanismQuestions: { type: Schema.Types.Mixed }
   },
 
   metrics: {

@@ -117,7 +117,7 @@ export default function DraftEditPage() {
   return (
     <div className="w-full max-w-6xl mx-auto pb-24 pt-6 animate-in fade-in duration-500">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <Link href="/app/studio" className="text-xs font-semibold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-1 mb-2">
             <ArrowLeft className="w-3 h-3" /> Back to Studio
@@ -134,7 +134,7 @@ export default function DraftEditPage() {
             <span className="text-xs font-bold px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-800/20 text-amber-700 dark:text-amber-400 uppercase">{draft.status}</span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           <Link
             href={`/app/draft/${draftId}/play`}
             className="px-4 py-2.5 text-sm font-bold bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg hover:border-indigo-400 transition-colors flex items-center gap-2"
@@ -151,7 +151,7 @@ export default function DraftEditPage() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-[260px_1fr] gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-8">
         {/* Layer Nav */}
         <div className="space-y-2">
           <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Public Layers</h3>

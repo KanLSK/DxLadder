@@ -1,5 +1,15 @@
 import { z } from 'zod';
 
+// Shared mechanism question shape
+const MechanismQuestionSchema = z.object({
+  id: z.string(),
+  prompt: z.string(),
+  options: z.array(z.string()).min(2),
+  correctIndex: z.number().int().min(0),
+  explanation: z.string(),
+  tags: z.array(z.string()).default([]),
+});
+
 // Matches the backend Case model structure exactly
 export const GeminiGenerateSchema = z.object({
   title: z.string().describe("Short teaser line summarizing the clinical presentation"),
@@ -47,7 +57,12 @@ export const GeminiGenerateSchema = z.object({
     answerCheck: z.object({
       rationale: z.string().describe("Clear explanation of why this diagnosis is correct"),
       keyDifferentials: z.array(z.string()).default([]).describe("The top differential diagnoses")
-    }).passthrough()
+    }).passthrough(),
+    mechanismQuestions: z.object({
+      stepChain: z.array(MechanismQuestionSchema).describe("Pathophysiology chain questions"),
+      compensation: z.array(MechanismQuestionSchema).describe("Physiologic compensation questions"),
+      traps: z.array(z.string()).default([]).describe("Common misconceptions about this condition")
+    }).optional().describe("Mechanism round questions for post-solve learning")
   }).passthrough()
 });
 
@@ -60,3 +75,5 @@ export const GeminiCriticSchema = z.object({
 
 export type GeminiGeneratePayload = z.infer<typeof GeminiGenerateSchema>;
 export type GeminiCriticPayload = z.infer<typeof GeminiCriticSchema>;
+export type MechanismQuestion = z.infer<typeof MechanismQuestionSchema>;
+

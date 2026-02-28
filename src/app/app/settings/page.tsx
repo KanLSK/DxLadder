@@ -20,7 +20,7 @@ export default function SettingsPage() {
             <div className="flex flex-col md:flex-row gap-8 items-start">
                 
                 {/* Desktop Tabs */}
-                <div className="w-full md:w-64 flex-shrink-0 space-y-1">
+                <div className="w-full md:w-64 flex-shrink-0 flex md:flex-col gap-2 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0">
                     {[
                         { label: 'Profile', icon: User, active: true },
                         { label: 'Notifications', icon: Bell, active: false },
@@ -28,7 +28,7 @@ export default function SettingsPage() {
                         { label: 'Billing & Pro', icon: CreditCard, active: false },
                     ].map((tab, i) => (
                         <button key={i} className={cn(
-                            "w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-lg transition-all text-left",
+                            "flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-lg transition-all text-left whitespace-nowrap",
                             tab.active 
                                 ? "bg-white dark:bg-[#18181B] text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/60 dark:border-zinc-800/60" 
                                 : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-zinc-900/50 dark:hover:text-white border border-transparent"

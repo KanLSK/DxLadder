@@ -75,9 +75,9 @@ export function ClinicalChart({ caseData, currentLayerIndex, solved, failed, rev
         </div>
 
         {/* Main Chart */}
-        <div className="flex flex-col md:flex-row gap-8 items-start">
-            {/* Left Nav */}
-            <div className="w-full md:w-64 flex-shrink-0 space-y-2">
+        <div className="flex flex-col gap-6">
+            {/* Top Tab Nav (Horizontal Scroll) */}
+            <div className="w-full flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
                 {LAYER_CONFIG.map((config, i) => {
                     const isRevealed = i <= currentLayerIndex || finished;
                     const isActive = activeTab === i;
@@ -87,7 +87,7 @@ export function ClinicalChart({ caseData, currentLayerIndex, solved, failed, rev
                             disabled={!isRevealed}
                             onClick={() => setActiveTab(i)}
                             className={cn(
-                                "w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all duration-300 border",
+                                "flex items-center justify-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-300 border whitespace-nowrap shrink-0",
                                 isActive
                                     ? "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 shadow-sm"
                                     : isRevealed
@@ -95,7 +95,7 @@ export function ClinicalChart({ caseData, currentLayerIndex, solved, failed, rev
                                         : "bg-slate-50/50 dark:bg-[#09090B] border-transparent text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-60"
                             )}
                         >
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
                                 <config.icon className={cn("w-4 h-4", isActive ? "text-indigo-600 dark:text-indigo-400" : isRevealed ? "text-slate-400" : "text-slate-300 dark:text-zinc-700")} />
                                 <span className="font-semibold text-sm">{config.label}</span>
                             </div>

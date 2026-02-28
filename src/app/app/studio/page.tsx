@@ -1,9 +1,21 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, BrainCircuit, Play, Check, X, Loader2, RefreshCw, XCircle, LayoutDashboard } from 'lucide-react';
+import { Sparkles, BrainCircuit, Play, Check, X, Loader2, RefreshCw, XCircle, LayoutDashboard, Shuffle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+
+const SYSTEM_OPTIONS = [
+    { id: 'Random', label: '🎲 Random' },
+    { id: 'Cardiovascular', label: 'Cardiovascular' },
+    { id: 'Respiratory', label: 'Respiratory' },
+    { id: 'Neurology', label: 'Neurology' },
+    { id: 'Gastrointestinal', label: 'GI' },
+    { id: 'Renal', label: 'Renal / KUB' },
+    { id: 'Endocrine', label: 'Endocrine' },
+    { id: 'Hematology', label: 'Hematology' },
+    { id: 'Infectious Disease', label: 'Infectious' },
+] as const;
 
 type StudioState =
     | { status: "idle" }
@@ -33,7 +45,7 @@ export default function AIStudioPage() {
     const router = useRouter();
 
     const [params, setParams] = useState({
-        systemTags: ['Mixed'],
+        systemTags: ['Random'] as string[],
         difficulty: 3,
         style: 'apk',
         targetAudience: 'clinical',
@@ -70,6 +82,25 @@ export default function AIStudioPage() {
 
     const handleParamChange = (field: string, value: any) => {
         setParams(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleSystemToggle = (systemId: string) => {
+        if (isInputDisabled) return;
+        setParams(prev => {
+            if (systemId === 'Random') {
+                return { ...prev, systemTags: ['Random'] };
+            }
+            // Remove 'Random' if present, then toggle this system
+            let next = prev.systemTags.filter(t => t !== 'Random');
+            if (next.includes(systemId)) {
+                next = next.filter(t => t !== systemId);
+            } else {
+                next = [...next, systemId];
+            }
+            // If nothing selected, fall back to Random
+            if (next.length === 0) next = ['Random'];
+            return { ...prev, systemTags: next };
+        });
     };
 
     const handleCancel = () => {
@@ -146,7 +177,7 @@ export default function AIStudioPage() {
 
             <div className="grid lg:grid-cols-2 gap-8">
                 {/* Left: Parameters */}
-                <div className="bg-white dark:bg-[#18181B] rounded-2xl border border-slate-200/60 dark:border-zinc-800/60 shadow-sm p-6 flex flex-col h-[620px]">
+                <div className="bg-white dark:bg-[#18181B] rounded-2xl border border-slate-200/60 dark:border-zinc-800/60 shadow-sm p-6 flex flex-col lg:h-[720px]">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg text-indigo-600 dark:text-indigo-400">
                             <BrainCircuit className="w-5 h-5" />
@@ -163,6 +194,38 @@ export default function AIStudioPage() {
                                 <option value="apk">APK (Long form, Deep synthesis)</option>
                             </select>
                         </div>
+
+                        {/* System / Topic Selection */}
+                        <div>
+                            <label className="block text-xs font-bold uppercase text-slate-500 mb-2">
+                                System / Topic
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                                {SYSTEM_OPTIONS.map(sys => {
+                                    const isSelected = params.systemTags.includes(sys.id);
+                                    return (
+                                        <button
+                                            key={sys.id}
+                                            type="button"
+                                            disabled={isInputDisabled}
+                                            onClick={() => handleSystemToggle(sys.id)}
+                                            className={cn(
+                                                "px-3 py-1.5 rounded-lg text-xs font-bold border transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
+                                                isSelected
+                                                    ? "bg-indigo-600 border-indigo-600 text-white shadow-sm shadow-indigo-500/25"
+                                                    : "bg-slate-50 dark:bg-zinc-900 border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-slate-400 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                                            )}
+                                        >
+                                            {sys.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <p className="text-[10px] text-slate-400 mt-1.5 font-medium">
+                                Select one or more systems. &quot;Random&quot; lets the AI choose freely.
+                            </p>
+                        </div>
+
                         <div>
                             <label className="block text-xs font-bold uppercase text-slate-500 mb-2 flex justify-between"><span>Difficulty (1-5)</span><span className="text-indigo-500">Tier {params.difficulty}</span></label>
                             <input type="range" min="1" max="5" disabled={isInputDisabled} value={params.difficulty} onChange={(e) => handleParamChange('difficulty', parseInt(e.target.value))} className="w-full accent-indigo-600 disabled:opacity-50" />
@@ -218,7 +281,7 @@ export default function AIStudioPage() {
                 </div>
 
                 {/* Right: Status Panel */}
-                <div className="bg-slate-50 dark:bg-[#09090B] rounded-2xl border border-slate-200/60 dark:border-zinc-800/60 h-[620px] shadow-inner overflow-hidden flex flex-col">
+                <div className="bg-slate-50 dark:bg-[#09090B] rounded-2xl border border-slate-200/60 dark:border-zinc-800/60 min-h-[400px] lg:h-[620px] shadow-inner overflow-hidden flex flex-col">
                     {state.status === 'idle' && (
                         <div className="flex flex-col items-center justify-center h-full text-center p-8 animate-in fade-in duration-500">
                             <div className="w-20 h-20 mb-6 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center"><LayoutDashboard className="w-10 h-10 text-slate-400 dark:text-zinc-600" /></div>

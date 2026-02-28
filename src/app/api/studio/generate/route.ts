@@ -81,7 +81,8 @@ export async function POST(request: Request) {
               diagnosis: finalPayload.content.diagnosis,
               aliases: finalPayload.content.aliases || [],
               teachingPoints: finalPayload.content.teachingPoints || [],
-              answerCheck: finalPayload.content.answerCheck || { rationale: '', keyDifferentials: [] }
+              answerCheck: finalPayload.content.answerCheck || { rationale: '', keyDifferentials: [] },
+              mechanismQuestions: finalPayload.content.mechanismQuestions || undefined,
           },
           promptMeta: {
               promptVersion: 'v3.0.0',

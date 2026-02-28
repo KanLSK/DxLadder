@@ -13,7 +13,7 @@ const convertZodToGemini = (zodObj: any): any => {
 
 export async function generateCasePayload(params: any) {
     const {
-        systemTags = ['Mixed'],
+        systemTags = ['Random'],
         difficulty = 3,
         style = 'apk',
         targetAudience = 'clinical',
@@ -22,6 +22,15 @@ export async function generateCasePayload(params: any) {
         redHerring = 'mild',
         timeline = 'acute'
     } = params;
+
+    // Determine system instruction based on whether the user chose 'Random' or specific systems
+    const isRandom = systemTags.length === 1 && systemTags[0] === 'Random';
+    const systemInstruction = isRandom
+        ? 'Choose ANY body system freely — surprise the user with an uncommon or under-represented system.'
+        : `The case MUST primarily involve: ${systemTags.join(', ')}. Ensure the clinical presentation authentically reflects pathology in ${systemTags.length > 1 ? 'these systems' : 'this system'}.`;
+
+    // Variation seed to ensure unique cases even with identical params
+    const variationSeed = Date.now();
 
     const strictJsonInstruction = `
     You MUST return ONLY a valid JSON object matching this exact structure:
@@ -44,16 +53,28 @@ export async function generateCasePayload(params: any) {
                  "pathognomonic": "String | null"
             },
             "teachingPoints": ["String"],
-            "answerCheck": { "rationale": "String", "keyDifferentials": ["String"] }
+            "answerCheck": { "rationale": "String", "keyDifferentials": ["String"] },
+            "mechanismQuestions": {
+                "stepChain": [
+                    { "id": "sc1", "prompt": "String", "options": ["A","B","C","D"], "correctIndex": Number (0-3), "explanation": "String", "tags": ["String"] }
+                ],
+                "compensation": [
+                    { "id": "comp1", "prompt": "String", "options": ["A","B","C","D"], "correctIndex": Number (0-3), "explanation": "String", "tags": ["String"] }
+                ],
+                "traps": ["Common misconception 1", "Common misconception 2"]
+            }
         }
     }
     `;
+
+    // Determine question count based on difficulty
+    const questionCount = difficulty <= 2 ? '2-3' : difficulty <= 4 ? '3-5' : '5-7';
 
     const prompt = `
     You are an expert medical educator creating a challenging clinical case for "Doctordle v3", a diagnostic reasoning game.
     
     PARAMETERS:
-    - Primary Systems: ${systemTags.join(', ')}
+    - Primary Systems: ${systemInstruction}
     - Target Difficulty: ${difficulty}/5
     - Style: ${style} (If vignette: short and punchy. If apk: very long, narrative, highly detailed like Thai medical exams).
     - Target Audience: ${targetAudience}
@@ -61,11 +82,26 @@ export async function generateCasePayload(params: any) {
     - Clinical Noise: ${noiseLevel} (Add irrelevant but realistic details)
     - Red Herrings: ${redHerring} (Add distractors that point to a differential)
     - Timeline: ${timeline}
+    - Variation Seed: ${variationSeed} (Use this to diversify your output — produce a UNIQUE case)
     
     REQUIREMENTS:
     1. PROGRESSIVE DISCLOSURE: The case must be split into 7 distinct layers in the JSON.
     2. Do NOT reveal the diagnosis in the layers. 
     3. The pathology must fit the requested difficulty. A difficulty 5 case should require deep synthesis of conflicting cues.
+
+    DIVERSITY REQUIREMENTS (CRITICAL):
+    4. Generate a UNIQUE case different from any common textbook vignette.
+    5. Vary patient demographics (age, sex, occupation, ethnicity, lifestyle).
+    6. Vary the chief complaint phrasing, clinical setting (ER, outpatient, ward, ICU), and presentation pattern.
+    7. Avoid the most stereotypical presentations — prefer atypical or under-recognized presentations for the chosen system.
+
+    MECHANISM QUESTIONS (REQUIRED):
+    8. In "mechanismQuestions", generate ${questionCount} total questions split between stepChain (pathophysiology) and compensation (physiologic responses).
+    9. stepChain questions should test WHY the disease causes the observed findings (e.g. "Which pathophysiological step leads to the hypotension seen in this patient?").
+    10. compensation questions should test HOW the body compensates (e.g. "Which compensatory mechanism is most active in this patient?").
+    11. Each question MUST have exactly 4 options, one correctIndex (0-3), a concise explanation (1-2 sentences), and relevant tags.
+    12. Each question id MUST be unique (e.g. "sc1", "sc2", "comp1", "comp2").
+    13. In "traps", list 2-3 common misconceptions students have about this condition.
 
     ${strictJsonInstruction}
     `;

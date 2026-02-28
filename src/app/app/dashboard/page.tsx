@@ -16,9 +16,6 @@ export default function DashboardPage() {
                     const data = await res.json();
                     if (data.success) {
                         setUser(data.user);
-                        // Save the user ID into localStorage so that subsequent case solves
-                        // can attach the userId (since we don't have a secure cookie session yet)
-                        localStorage.setItem('dxladder_uid', data.user.id);
                     }
                 }
             } catch (err) {
